@@ -1,0 +1,14 @@
+{
+  "name": "claude-config.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "devDependencies": {
+    "crypto": "0.0.3",
+    "rand-token": "^0.2.1"
+  }
+}
