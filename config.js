@@ -1,11 +1,12 @@
 var randtoken = require('rand-token');
 var fs = require('fs');
 var crypto = require('crypto');
+var exec = require('child_process').exec;
 
 var algorithm = 'aes-256-gcm';
 var iv = randomValueHex(12);
 
-//function randomValueHex (len) {
+function randomValueHex (len) {
     return crypto.randomBytes(Math.ceil(len/2)).toString('hex').slice(0,len);
 }
 
@@ -20,11 +21,20 @@ function checkVolume(volume) {
 
 }
 
+function createGit(path) {
+
+  process.chdir(path);
+  exec('git init --bare', function (error, stdout, stderr) {
+    console.log('git initialized : ' + stdout);
+  });
+
+}
+
 function register(volume, password) {
 
   var uid = require('rand-token').uid;
   var encryptedToken = {};
-  var token = uid(16);
+  var token = 'claude.js';
 
   console.log('token', token);
 
@@ -45,6 +55,7 @@ function register(volume, password) {
         console.log(err);
       } else {
         console.log("JSON saved to " + '/Volumes/'+volume+'/autosync-token');
+        createGit('/Volumes/'+volume);
       }
     }); 
   }
@@ -61,12 +72,12 @@ var rl = readline.createInterface({
 rl.question("Type a volume to register. ", function(volume) {
   rl.question("Type your password. ", function(pass) {
 
-  crypto.pbkdf2(pass, 'salt', 4096, 16, 'sha256', function(err, key) {
-     //console.log(key.toString('hex'));
-     register(volume, key.toString('hex'));
-     rl.close();
+    crypto.pbkdf2(pass, 'salt', 4096, 16, 'sha256', function(err, key) {
+       
+       register(volume, key.toString('hex'));
+       rl.close();
 
-  });   
+    });   
 
   })
 });
