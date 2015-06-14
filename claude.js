@@ -3,6 +3,7 @@ var os = require('os');
 var child_processes = require('child_process');
 
 var windows = (os.platform().match("^win") != null);
+var mac = 'darwin';
 
 function sync(device)
 {
@@ -12,7 +13,7 @@ function sync(device)
 
 function parseToken(device, callback) {
     console.log(device);
-    var files = fs.readdirsync(device+'/');
+    var files = fs.readdirSync(device+'/');
     files.forEach(function(file_name, index, array) {
         if(file_name == 'autosync-token' && fs.statSync(device+'/autosync-token').isFile() )
         {
@@ -33,9 +34,16 @@ function parseDevices(checkDevice, callback)
             });
             callback();
         });
-    } else {
-        console.log('process');
+    } else if (os.platform() === mac) {
+        console.log('mac process');
+        var volumes = fs.readdirSync('/Volumes/');
+        volumes.forEach(function(o,i,a) {
+            console.log('check device', o);
+            checkDevice('/Volumes/' + o)
+        });
         callback();
+    } else {
+        console.log('linux process');
     }
 }
 
@@ -51,7 +59,7 @@ function detectDevices(checkDevice) {
     });
 }
 
-detectDevices(function parseToken(device){
+detectDevices(function (device){
     parseToken(device, sync);
 });
 
