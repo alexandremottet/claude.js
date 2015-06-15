@@ -2,6 +2,9 @@ var randtoken = require('rand-token');
 var fs = require('fs');
 var crypto = require('crypto');
 var exec = require('child_process').exec;
+var token = require('./token')
+
+console.log(token);
 
 var algorithm = 'aes-256-gcm';
 var iv = randomValueHex(12);
