@@ -30,11 +30,12 @@ function exist(device) {
 	return exist;
 }
 
-function isValid(device, password) {
+function isValid(device, password, callback) {
 	var content = JSON.parse(fs.readFileSync(device+'/'+tokenFileName, {encoding:'utf8'}))
 	var token = content.token.split('.')
 	crypt.decrypt(token[1], password, token[0], function(text) {
-		console.log(text);
+		var exist = (text === 'claude.js')
+		callback(exist);
 	})
 }
 

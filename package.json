@@ -8,7 +8,10 @@
   },
   "author": "",
   "devDependencies": {
+    "chai": "^3.0.0",
     "crypto": "0.0.3",
+    "mocha": "^2.2.5",
+    "mock-fs": "^2.7.1",
     "rand-token": "^0.2.1"
   }
 }
