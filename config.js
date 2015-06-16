@@ -4,8 +4,6 @@ var crypto = require('crypto');
 var exec = require('child_process').exec;
 var token = require('./token')
 
-console.log(token);
-
 var algorithm = 'aes-256-gcm';
 var iv = randomValueHex(12);
 
@@ -35,11 +33,15 @@ function createGit(path) {
 
 function register(volume, password) {
 
-  var uid = require('rand-token').uid;
-  var encryptedToken = {};
-  var token = 'claude.js';
+  token.generate('/Volumes/'+volume, password, function() {
+    createGit('/Volumes/'+volume);
+  });
 
-  console.log('token', token);
+  //var uid = require('rand-token').uid;
+  //var encryptedToken = {};
+  //var token = 'claude.js';
+
+  /*console.log('token', token);
 
   var cipher = crypto.createCipheriv(algorithm, password, iv);
   var encrypted = cipher.update(token, 'utf8', 'hex');
@@ -61,27 +63,13 @@ function register(volume, password) {
         createGit('/Volumes/'+volume);
       }
     }); 
-  }
+  }*/
 
 }
 
-var readline = require('readline');
+var config = {
+  register: register,
+}
 
-var rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-rl.question("Type a volume to register. ", function(volume) {
-  rl.question("Type your password. ", function(pass) {
-
-    crypto.pbkdf2(pass, 'salt', 4096, 16, 'sha256', function(err, key) {
-       
-       register(volume, key.toString('hex'));
-       rl.close();
-
-    });   
-
-  })
-});
+module.exports = config
 
