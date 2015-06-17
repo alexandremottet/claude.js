@@ -37,34 +37,6 @@ function register(volume, password) {
     createGit('/Volumes/'+volume);
   });
 
-  //var uid = require('rand-token').uid;
-  //var encryptedToken = {};
-  //var token = 'claude.js';
-
-  /*console.log('token', token);
-
-  var cipher = crypto.createCipheriv(algorithm, password, iv);
-  var encrypted = cipher.update(token, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  
-  console.log('generate token ' + encrypted + ' for volume ' + volume);
-
-  encryptedToken['token'] = iv+"."+encrypted;
-
-  console.log(encryptedToken, JSON.stringify(encryptedToken));
-  
-  var exist = checkVolume(volume);
-  if (exist) {
-    fs.writeFile('/Volumes/'+volume+'/autosync-token', JSON.stringify(encryptedToken), function(err) {
-      if(err) {
-        console.log(err);
-      } else {
-        console.log("JSON saved to " + '/Volumes/'+volume+'/autosync-token');
-        createGit('/Volumes/'+volume);
-      }
-    }); 
-  }*/
-
 }
 
 var config = {
