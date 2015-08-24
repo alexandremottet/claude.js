@@ -1,22 +1,25 @@
 var fs = require('fs');
 var crypt = require('./crypt');
+var crypto = require('crypto');
+var path = require('path');
 
-var tokenFileName = 'autosync-token'
-function generate(volume, password, callback) {
+var tokenFileName = '.autosync-token';
 
-	crypt.encrypt('claude.js', password, function(token) {
-		var encryptedToken = {};
-		encryptedToken.token = token.iv+'.'+token.encrypted;
-		fs.writeFile(volume+'/'+tokenFileName, JSON.stringify(encryptedToken), function(err) {
-			if(err) {
-				console.log(err);
-			} else {
-				console.log("JSON saved to " + '/Volumes/'+volume+'/autosync-token');
-				callback();
-			}
-		});
-	});
-
+function generate(volumePath, localPath, callback) {
+    console.log('Generating tokens...');
+    crypto.randomBytes(64, function(exc, buf) {
+        if(exc) callback('Cannot generate the tokens.');
+        console.log('Writing token in', path.join(volumePath, tokenFileName));
+        fs.writeFile(path.join(volumePath, tokenFileName), buf, function(exc) {
+            if(exc) callback('Cannot write the token on the volume.');
+            
+            console.log('Writing token in', path.join(localPath, tokenFileName));
+            fs.writeFile(path.join(localPath, tokenFileName), buf, function(exc) {
+                if(exc) callback('Cannot write the token on the local repo.');
+                callback('Everything went fine.');
+            });
+        });
+    });
 }
 
 function exist(device) {

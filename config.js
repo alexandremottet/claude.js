@@ -1,42 +1,42 @@
-var randtoken = require('rand-token');
 var fs = require('fs');
-var crypto = require('crypto');
 var exec = require('child_process').exec;
 var token = require('./token')
+var Git = require('nodegit');
+var path = require('path');
 
-var algorithm = 'aes-256-gcm';
-var iv = randomValueHex(12);
-
-function randomValueHex (len) {
-    return crypto.randomBytes(Math.ceil(len/2)).toString('hex').slice(0,len);
-}
-
-function checkVolume(volume) {
-
-    stats = fs.statSync('/Volumes/'+volume);
+function checkVolume(volumePath, cb) {
+    stats = fs.statSync(volumePath);
     if (stats.isDirectory()) {
-	console.log(volume + ' is a directory');
-	return true;
+	   console.log(volumePath + ' is a directory.');
+        
+        fs.open(path.join(volumePath, '/.autosync-token'), 'r', function(err,fd) {
+            if(fd != 0)
+            {
+                console.log(volumePath + ' is already a Claude-associated volume. Please wipe the volume if you really want to and try again.');
+                cb(false);
+            }
+            else
+                return true;
+        });
     }
     return false;
-
 }
 
-function createGit(path) {
-
-  process.chdir(path);
-  exec('git init --bare', function (error, stdout, stderr) {
-    console.log('git initialized : ' + stdout);
-  });
-
-}
-
-function register(volume, password) {
-
-  token.generate('/Volumes/'+volume, password, function() {
-    createGit('/Volumes/'+volume);
-  });
-
+function register(volumePath, localPath, cb) {
+    nVolumePath = path.resolve(volumePath);
+    nLocalPath = path.resolve(localPath);
+    // need to check if volumePath points to an empty directory
+    // need to check if localPath points to a nonexisting directory
+    console.log('Starting creation...');
+    Git.Repository.init(nVolumePath, 1).then( function(repo) {
+        console.log('Repository created in', nVolumePath);
+        Git.Clone(nVolumePath, nLocalPath).then( function(repo) {
+            console.log('Local copy created in', nLocalPath);
+            token.generate(nVolumePath, nLocalPath, cb);
+        });
+    }).catch(function(err) {
+        cb(err);
+    });
 }
 
 var config = {
