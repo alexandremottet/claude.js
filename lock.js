@@ -87,4 +87,4 @@ var lock = {
      unlockRepository: unlockRepository
 };
 
-modules.exports = lock
+module.exports = lock

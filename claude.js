@@ -111,7 +111,7 @@ rl.on('line', function(cmd) {
         if(array.length == 3)
             lock.unlockRepository(array[1], array[2]);
         else
-            console.log('That\'s not how to use lock you dumbass.');
+            console.log('That\'s not how to use unlock you dumbass.');
         break;
             
     case 'quit':

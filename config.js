@@ -1,5 +1,4 @@
 var fs = require('fs');
-var exec = require('child_process').exec;
 var token = require('./token')
 var Git = require('nodegit');
 var path = require('path');
@@ -9,17 +8,17 @@ function checkVolume(volumePath, cb) {
     if (stats.isDirectory()) {
 	   console.log(volumePath + ' is a directory.');
         
-        fs.open(path.join(volumePath, '/.autosync-token'), 'r', function(err,fd) {
+        fs.open(path.join(volumePath, '.autosync-token'), 'r', function(err,fd) {
             if(fd != 0)
             {
                 console.log(volumePath + ' is already a Claude-associated volume. Please wipe the volume if you really want to and try again.');
                 cb(false);
             }
             else
-                return true;
+                cb(true);
         });
     }
-    return false;
+    cb(false);
 }
 
 function register(volumePath, localPath, cb) {
