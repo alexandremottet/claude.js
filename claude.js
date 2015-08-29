@@ -120,7 +120,7 @@ commands = {
 };
 
 rl.on('line', function(cmd) {
-    array = cmd.split(' ');
+    array = cmd.trim().split(' ');
     var goodCommand = false;
     for(var cmd in commands)
     {
