@@ -13,5 +13,9 @@
     "mocha": "^2.2.5",
     "mock-fs": "^2.7.1",
     "rand-token": "^0.2.1"
+  },
+  "dependencies": {
+    "node-dir": "^0.1.9",
+    "nodegit": "^0.4.1"
   }
 }
