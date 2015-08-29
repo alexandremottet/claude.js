@@ -6,8 +6,7 @@ function defaultCallback(status) {
 
 function readConfigFile() {
     require('fs').readFile('.claude', function(err, data) {
-        if(err) console.log('Impossible to open the configuration file.');
-        else {
+        if(!err) {
             var table = JSON.parse(data);
             for(var entry in table)
                 repoTable[entry] = Buffer(table[entry].data);
