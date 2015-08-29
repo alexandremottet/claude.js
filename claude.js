@@ -70,6 +70,7 @@ function detectDevices(checkDevice) {
 //    parseToken(device, sync);
 //});
 
+require('./global').readConfigFile();
 
 var rl = readline.createInterface({
     input: process.stdin,
@@ -83,15 +84,22 @@ rl.on('line', function(cmd) {
     switch(array[0])
     {
     case 'list':
-        parseDevices(isDeviceClaudeEnabled, function(err, dev) {
-            if(dev)
-                console.log(dev, 'contains a Claude repository.'); 
-        });
+        if(array[1] == 'devices') {
+            parseDevices(isDeviceClaudeEnabled, function(err, dev) {
+                if(dev)
+                    console.log(dev, 'contains a Claude repository.'); 
+            });
+        } else if(array[1] == 'local') {
+            console.log(require('./global').repoTable);   
+        }
         break;
     case 'add':
         rl.question("Type a volume to register. ", function(volumePath) {
             rl.question("Type the associated local repository. ", function(localRepo) {
-                config.register(volumePath, localRepo, require('./global').defaultCallback);
+                config.register(volumePath, localRepo, function(err) {
+                    if(err) console.log(err);
+                    else console.log('Everything went fine');
+                });
             });   
         });
         break;
@@ -114,9 +122,11 @@ rl.on('line', function(cmd) {
         break;
             
     case 'quit':
+        fs.writeFileSync('.claude', JSON.stringify(require('./global').repoTable));
         rl.close();
         process.exit(0);
         break;
+            
     case '':
         break;
     default:

@@ -1,7 +1,21 @@
     
 function defaultCallback(status) {
-    console.log("Status:", status);
+    if(status)
+        console.log("Status:", status);
 }
+
+function readConfigFile() {
+    require('fs').readFile('.claude', function(err, data) {
+        if(err) console.log('Impossible to open the configuration file.');
+        else {
+            var table = JSON.parse(data);
+            for(var entry in table)
+                repoTable[entry] = Buffer(table[entry].data);
+        }
+    });
+}
+
+var repoTable = {}
 
 var global = {
     algorithm: 'aes-256-cbc',
@@ -11,6 +25,9 @@ var global = {
     
     tokenFileName: '.autosync-token',
     lockFileName: '.lock',
+    
+    repoTable: repoTable,
+    readConfigFile: readConfigFile,
     
     defaultCallback: defaultCallback
 };

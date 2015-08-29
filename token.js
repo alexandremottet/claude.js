@@ -23,7 +23,10 @@ function generate(volumePath, localPath, callback) {
             console.log('Writing token in', path.join(localPath, tokenFileName));
             fs.writeFile(path.join(localPath, tokenFileName), buf, function(exc) {
                 if(exc) callback('Cannot write the token on the local repo.');
-                else callback('Everything went fine.');
+                else {
+                    require('./global').repoTable[localPath] = buf;
+                    callback(null);
+                }
             });
         });
     });
