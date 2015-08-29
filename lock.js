@@ -3,80 +3,72 @@ var fs = require('fs');
 var path = require('path');
 var nodedir = require('node-dir');
 
-var IVlength = 16;
-var saltLength = 32;
-var algorithm = 'aes-256-cbc';
+var encryptFile = require('./crypt').encryptFile;
+var decryptAndRead = require('./crypt').decryptAndRead;
+
+var global = require('./global');
+
 
 function lockRepository(repoPath, passwd) {
-    crypto.randomBytes(IVlength+saltLength, function(err, saltandiv) {
+    crypto.randomBytes(global.IVlength+global.saltLength, function(err, saltandiv) {
         if(err)
         {
             console.log('Not enough entropy, cannot encrypt.');
             return;
         }
-        iv = saltandiv.slice(0, IVLength);
-        salt = saltandiv.slice(IVLength);
+        iv = saltandiv.slice(0, global.IVLength);
+        salt = saltandiv.slice(global.IVLength);
         
         // Generate key for AES256 (keylength = 256 bits = 32 bytes)
-        crypto.pbkdf2(passwd, salt, 4096, 32, 'sha1', function(err, key) {
+        crypto.pbkdf2(passwd, salt, 4096, global.keyLength, 'sha1', function(err, key) {
             if(err)
             {
                 console.log('Problem during PBKDF2.');
                 return;
             }
             
-            // Cipher every file but .autosync-token
             nodedir.files(repoPath, function(err, fileList) {
                 fileList.forEach(function(fileName, index, array) {
-                    if(fileName != path.join(repoPath,'.autosync-token')) {
-                        console.log('Ciphering', fileName);
-                        fs.readFile(fileName, function(err, data) {
-                            cipher = crypto.createCipheriv(algorithm, key, iv);
-                            
-                            ciphertext = [];
-                            ciphertext[0] = cipher.update(data);
-                            ciphertext[1] = cipher.final();
-                            fs.writeFile(fileName, Buffer.concat(ciphertext)); 
-                        });
-                    }
+                    console.log('Ciphering', fileName);
+                    encryptFile(fileName, iv, key, global.defaultErrCallback);
                 });
             });
             
-            fs.writeFile(path.join(repoPath,'.lock'), saltandiv);
+            fs.writeFile(path.join(repoPath, global.lockFileName), saltandiv);
         });
     });
 }
 
 function unlockRepository(repoPath, passwd) {
-    fs.readFile(path.join(repoPath,'.lock'), function(err,data){
-        iv = data.slice(0,IVlength);
-        salt = data.slice(IVlength);
+    fs.readFile(path.join(repoPath,lockFileName), function(err,data){
+        iv = data.slice(0,global.IVlength);
+        salt = data.slice(global.IVlength);
         
-        crypto.pbkdf2(passwd, salt, 4096, 32, 'sha1', function(err, key) {
+        crypto.pbkdf2(passwd, salt, 4096, global.keyLength, 'sha1', function(err, key) {
             if(err)
             {
                 console.log('Problem during PBKDF2.');
                 return;
             }
             
-            // Decipher every file but .autosync-token
-            nodedir.files(repoPath, function(err, fileList) {
-                if(err) console.log(err);
-                fileList.forEach(function(fileName, index, array) {
-                    if(fileName == path.join(repoPath, '.lock')) {
-                        fs.unlink(fileName);
-                    }
-                    else if(fileName != path.join(repoPath, '.autosync-token')) {
-                        console.log('Deciphering', fileName);
-                        fs.readFile(fileName, function(err, data) {
-                            decipher = crypto.createDecipheriv(algorithm, key, iv);
-                            cleartext = [];
-                            cleartext[0] = decipher.update(data);
-                            cleartext[1] = decipher.final();
-                            fs.writeFile(fileName, Buffer.concat(cleartext)); 
-                        });
-                    }
-                });
+            // Uncipher the token, read the token, find which
+            // local repo corresponds to the token
+            decryptAndRead(path.join(repoPath, global.tokenFileName), function(err, data) {
+                // TODO: check this is a good token
+                
+                // Decipher every file but .lock
+                nodedir.files(repoPath, function(err, fileList) {
+                    if(err) console.log(err);
+                    fileList.forEach(function(fileName, index, array) {
+                        if(fileName == path.join(repoPath, global.lockFileName)) {
+                            fs.unlink(fileName);
+                        }
+                        else {
+                            console.log('Deciphering', fileName);
+                            decryptFile(fileName, iv, key, global.defaultCallback);
+                        }
+                    });
+                });  
             });
         });
     });
@@ -84,7 +76,7 @@ function unlockRepository(repoPath, passwd) {
 
 var lock = {
     lockRepository: lockRepository,
-     unlockRepository: unlockRepository
+    unlockRepository: unlockRepository
 };
 
 module.exports = lock

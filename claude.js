@@ -6,6 +6,7 @@ var path = require('path');
 var config = require('./config');
 var lock = require('./lock');
 
+var tokenFileName = require('./global').tokenFileName;
 var windows = (os.platform().match("^win") != null);
 var mac = 'darwin';
 
@@ -20,7 +21,7 @@ function isDeviceClaudeEnabled(device, callback) {
         if(err) callback(err, null);
         else {
             files.forEach(function(file_name, index, array) {
-                if(file_name == '.autosync-token' && fs.statSync(path.join(device, '.autosync-token')).isFile() )
+                if(file_name == tokenFileName && fs.statSync(path.join(device, tokenFileName)).isFile() )
                 {
                     callback(null, device);
                 }
@@ -90,9 +91,7 @@ rl.on('line', function(cmd) {
     case 'add':
         rl.question("Type a volume to register. ", function(volumePath) {
             rl.question("Type the associated local repository. ", function(localRepo) {
-                config.register(volumePath, localRepo, function(status) {
-                    console.log(status);
-                });
+                config.register(volumePath, localRepo, require('./global').defaultCallback);
             });   
         });
         break;
