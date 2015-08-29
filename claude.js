@@ -70,6 +70,37 @@ function detectDevices(checkDevice) {
 //    parseToken(device, sync);
 //});
 
+function cmdList(arg) {
+    if(arg[0] == 'devices')
+    {
+        parseDevices(isDeviceClaudeEnabled, function(err, dev) {
+                if(dev)
+                    console.log(dev, 'contains a Claude repository.'); 
+            });
+    }
+    else if(arg[0] == 'local')
+        console.log(require('./global').repoTable);   
+}
+
+function cmdAdd(arg) {
+    rl.question("Type a volume to register. ", function(volumePath) {
+        rl.question("Type the associated local repository. ", function(localRepo) {
+            config.register(volumePath, localRepo, function(err) {
+                if(err) console.log(err);
+                else console.log('Everything went fine');
+            });
+        });   
+    });
+}
+
+function cmdLock(args) {
+    lock.lockRepository(args[0], args[1]);
+}
+
+function cmdUnlock(args) {
+    lock.unlockRepository(args[0], args[1]);   
+}
+
 require('./global').readConfigFile();
 
 var rl = readline.createInterface({
@@ -79,59 +110,31 @@ var rl = readline.createInterface({
 rl.setPrompt('Claude: ');
 rl.prompt(true);
 
+// 'command': [#arguments, function(arguments) {...}]
+commands = {
+    'list': [1, cmdList],
+    'add': [0, cmdAdd],
+    '': [0, function(a){}],
+    'lock': [2, cmdLock],
+    'unlock': [2, cmdUnlock]
+};
+
 rl.on('line', function(cmd) {
     array = cmd.split(' ');
-    switch(array[0])
+    var goodCommand = false;
+    for(var cmd in commands)
     {
-    case 'list':
-        if(array[1] == 'devices') {
-            parseDevices(isDeviceClaudeEnabled, function(err, dev) {
-                if(dev)
-                    console.log(dev, 'contains a Claude repository.'); 
-            });
-        } else if(array[1] == 'local') {
-            console.log(require('./global').repoTable);   
-        }
-        break;
-    case 'add':
-        rl.question("Type a volume to register. ", function(volumePath) {
-            rl.question("Type the associated local repository. ", function(localRepo) {
-                config.register(volumePath, localRepo, function(err) {
-                    if(err) console.log(err);
-                    else console.log('Everything went fine');
-                });
-            });   
-        });
-        break;
-            
-    case 'lock':
-        if(array.length == 3)
+        if(cmd == array[0])
         {
-            // TODO: sync local repo to remote
-            lock.lockRepository(array[1], array[2]);
+            goodCommand = true;
+            if(array.length-1 == commands[cmd][0])
+                commands[cmd][1](array.slice(1));
+            else
+                console.log(cmd,'expects',commands[cmd][0],'arguments.');
         }
-        else
-            console.log('That\'s not how to use lock you dumbass.');
-        break;
-            
-    case 'unlock':
-        if(array.length == 3)
-            lock.unlockRepository(array[1], array[2]);
-        else
-            console.log('That\'s not how to use unlock you dumbass.');
-        break;
-            
-    case 'quit':
-        fs.writeFileSync('.claude', JSON.stringify(require('./global').repoTable));
-        rl.close();
-        process.exit(0);
-        break;
-            
-    case '':
-        break;
-    default:
-        console.log('I don\'t know this command.');
-    }    
+    }
+    if(!goodCommand)
+        console.log(cmd,'is not a valid command.');
     rl.prompt(true);
 });
     
