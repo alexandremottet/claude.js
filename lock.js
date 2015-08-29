@@ -10,7 +10,7 @@ var decryptAndRead = require('./crypt').decryptAndRead;
 var global = require('./global');
 
 
-function lockRepository(repoPath, passwd) {
+function lockRepository(localPath, passwd) {
     crypto.randomBytes(global.IVlength+global.saltLength, function(err, saltandiv) {
         if(err)
         {
@@ -28,20 +28,23 @@ function lockRepository(repoPath, passwd) {
                 return;
             }
 
-            nodedir.files(repoPath, function(err, fileList) {
+            nodedir.files(localPath, function(err, fileList) {
                 fileList.forEach(function(fileName, index, array) {
-                    console.log('Ciphering', fileName);
-                    encryptFile(fileName, iv, key, global.defaultErrCallback);
+                    // Cipher everyfile except the ones in .git/ and the token
+                    if(fileName.indexOf('.git')==-1 && path.basename(fileName) != global.tokenFileName) {
+                        console.log('Ciphering', fileName);
+                        encryptFile(fileName, iv, key, global.defaultCallback);
+                    }
                 });
             });
             
-            fs.writeFile(path.join(repoPath, global.lockFileName), saltandiv, global.defaultCallback);
+            fs.writeFile(path.join(localPath, global.lockFileName), saltandiv, global.defaultCallback);
         });
     });
 }
 
-function unlockRepository(repoPath, passwd) {
-    fs.readFile(path.join(repoPath,global.lockFileName), function(err,data){
+function unlockRepository(localPath, passwd) {
+    fs.readFile(path.join(localPath,global.lockFileName), function(err,data){
         iv = data.slice(0,global.IVlength);
         salt = data.slice(global.IVlength);
         
@@ -52,36 +55,18 @@ function unlockRepository(repoPath, passwd) {
                 return;
             }
             
-            
-            // Uncipher the token, read the token, find which
-            // local repo corresponds to the token
-            decryptAndRead(path.join(repoPath, global.tokenFileName), iv, key, function(err, token) {
-                var goodToken = false;
-                var localRepo;
-                for(var repo in require('./global').repoTable)
-                {
-                    if(token.equals(require('./global').repoTable[repo]))
-                    {
-                        localRepo = repo;
-                        goodToken = true;
-                        break;
-                    }
-                }
-                if(!goodToken) {
-                    console.log('Wrong password or this drive is not associated with any local repository.');
-                } else {
-                    console.log('local repo',localRepo,'is associated with',path.resolve(repoPath));
-                    fs.unlink(path.join(repoPath, global.lockFileName), function(err){
-                        // Decipher every file
-                        nodedir.files(repoPath, function(err, fileList) {
-                            if(err) console.log(err);
-                            fileList.forEach(function(fileName, index, array) {
-                                console.log('Deciphering', fileName);
-                                decryptFile(fileName, iv, key, global.defaultCallback);
-                            });
-                        }); 
+
+            fs.unlink(path.join(localPath, global.lockFileName), function(err){
+                // Decipher every file but the ones in .git/ and the token
+                nodedir.files(localPath, function(err, fileList) {
+                    if(err) console.log(err);
+                    fileList.forEach(function(fileName, index, array) {
+                        if(fileName.indexOf('.git')==-1 && path.basename(fileName) != global.tokenFileName) {
+                            console.log('Deciphering', fileName);
+                            decryptFile(fileName, iv, key, global.defaultCallback);
+                        }
                     });
-                }
+                }); 
             });
         });
     });

@@ -101,6 +101,11 @@ function cmdUnlock(args) {
     lock.unlockRepository(args[0], args[1]);   
 }
 
+function cmdQuit(arg) {
+    fs.writeFileSync('.claude', JSON.stringify(require('./global').repoTable));
+    process.exit(0);
+}
+
 require('./global').readConfigFile();
 
 var rl = readline.createInterface({
@@ -116,7 +121,8 @@ commands = {
     'add': [0, cmdAdd, 'add'],
     '': [0, function(a){}, ''],
     'lock': [2, cmdLock, 'lock <remote repository> <password>'],
-    'unlock': [2, cmdUnlock, 'unlock <remote repository> <password>']
+    'unlock': [2, cmdUnlock, 'unlock <remote repository> <password>'],
+    'quit': [0, cmdQuit, '']
 };
 
 rl.on('line', function(cmd) {
@@ -127,14 +133,14 @@ rl.on('line', function(cmd) {
         if(cmd == array[0])
         {
             goodCommand = true;
-            if(array.length-1 == commands[cmd][0])
+            if(array.length-1 >= commands[cmd][0])
                 commands[cmd][1](array.slice(1));
             else
                 console.log('Usage:',commands[cmd][2]);
         }
     }
     if(!goodCommand)
-        console.log(cmd,'is not a valid command.');
+        console.log(array[0],'is not a valid command.');
     rl.prompt(true);
 });
     
