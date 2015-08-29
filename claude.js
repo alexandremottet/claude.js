@@ -110,13 +110,13 @@ var rl = readline.createInterface({
 rl.setPrompt('Claude: ');
 rl.prompt(true);
 
-// 'command': [#arguments, function(arguments) {...}]
+// 'command': [#arguments, function(arguments) {...}, '<cmd> <arg1> <arg2> ...']
 commands = {
-    'list': [1, cmdList],
-    'add': [0, cmdAdd],
-    '': [0, function(a){}],
-    'lock': [2, cmdLock],
-    'unlock': [2, cmdUnlock]
+    'list': [1, cmdList, 'list (devices|local)'],
+    'add': [0, cmdAdd, 'add'],
+    '': [0, function(a){}, ''],
+    'lock': [2, cmdLock, 'lock <remote repository> <password>'],
+    'unlock': [2, cmdUnlock, 'unlock <remote repository> <password>']
 };
 
 rl.on('line', function(cmd) {
@@ -130,7 +130,7 @@ rl.on('line', function(cmd) {
             if(array.length-1 == commands[cmd][0])
                 commands[cmd][1](array.slice(1));
             else
-                console.log(cmd,'expects',commands[cmd][0],'arguments.');
+                console.log('Usage:',commands[cmd][2]);
         }
     }
     if(!goodCommand)
