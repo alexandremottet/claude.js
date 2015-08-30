@@ -123,4 +123,8 @@ rl.on('line', function(cmd) {
         console.log(array[0],'is not a valid command.');
     rl.prompt(true);
 });
+
+rl.on('SIGINT', function() {
+    cmdQuit(null);
+});
     
