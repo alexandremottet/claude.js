@@ -55,18 +55,6 @@ function cmdLock(args) {
     });
 }
 
-function unlockAndClone(remotePath, localPath, passwd) {
-    // uncipher the remote copy with the given password
-    lock.unlockRepository(remotePath, passwd, function(err){
-        if(err) {
-            console.log('Cannot unlock',remotePath);
-            console.log(err);
-        }
-        else 
-            Git.Clone(remotePath, localPath);
-    });
-}
-
 function cmdUnlock(args) {
     if(!require('./global').isStringValidRepositoryID(args[0])) {
         console.log(commands['unlock'][2]);
@@ -77,9 +65,9 @@ function cmdUnlock(args) {
     if(repoEntry.localPath == '') {
         rl.question('Where should I copy the repository?', function(ans) {
             repoEntry.localPath = ans;
-            unlockAndClone(repoEntry.remotePath, repoEntry.localPath, args[1]);
+            lock.unlockAndClone(repoEntry.remotePath, repoEntry.localPath, args[1]);
         });
-    } else unlockAndClone(repoEntry.remotePath, repoEntry.localPath, args[1]);
+    } else lock.unlockAndClone(repoEntry.remotePath, repoEntry.localPath, args[1]);
 }
 
 function cmdQuit(arg) {

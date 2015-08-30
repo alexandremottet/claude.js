@@ -94,9 +94,22 @@ function unlockRepository(repository, passwd, cb) {
     });
 }
 
+function unlockAndClone(remotePath, localPath, passwd) {
+    // uncipher the remote copy with the given password
+    lock.unlockRepository(remotePath, passwd, function(err){
+        if(err) {
+            console.log('Cannot unlock',remotePath);
+            console.log(err);
+        }
+        else 
+            Git.Clone(remotePath, localPath);
+    });
+}
+
 var lock = {
     lockRepository: lockRepository,
-    unlockRepository: unlockRepository
+    unlockRepository: unlockRepository,
+    unlockAndClone: unlockAndClone
 };
 
 module.exports = lock
