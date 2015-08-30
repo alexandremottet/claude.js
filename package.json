@@ -2,7 +2,7 @@
   "name": "claude-config.js",
   "version": "1.0.0",
   "description": "",
-  "main": "config.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,6 +10,7 @@
   "devDependencies": {
     "chai": "^3.0.0",
     "crypto": "0.0.3",
+    "electron-prebuilt": "^0.31.1",
     "mocha": "^2.2.5",
     "mock-fs": "^2.7.1",
     "rand-token": "^0.2.1"
