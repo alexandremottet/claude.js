@@ -57,7 +57,10 @@ function lockRepository(repository, passwd, cb) {
     });
 }
 
-function unlockRepository(repository, passwd) {
+// unlockRepository(string, string, function(err) {...})
+/* repository: string that contains the path of the bare repository. It is assumed that
+                this string belongs to global.repoTable                                 */
+function unlockRepository(repository, passwd, cb) {
     fs.readFile(path.join(repository,global.lockFileName), function(err,data){
         iv = data.slice(0,global.IVlength);
         salt = data.slice(global.IVlength);
@@ -65,38 +68,22 @@ function unlockRepository(repository, passwd) {
         crypto.pbkdf2(passwd, salt, 4096, global.keyLength, 'sha1', function(err, key) {
             if(err)
             {
-                console.log('Problem during PBKDF2.');
+                cb(err);
                 return;
             }
             
-            decryptAndRead(path.join(repository, global.tokenFileName), iv, key, function(err, cleartext){
-                var goodToken = false;
-                var localRepo;
-                for(var rep in require('./global').repoTable)
-                {
-                    if(repoTable[rep] == cleartext)
-                    {
-                        goodToken = true;
-                        localRepo = rep;
-                    }
-                }
-                if(!goodToken) {
-                    console.log('The repository',repository,'does not correspond to any known repository.');
-                } else {
-                    fs.unlink(path.join(repository, global.lockFileName), function(err){
-                        // Decipher every file but the ones in .git/ and the token
-                        nodedir.files(repository, function(err, fileList) {
-                            if(err) console.log(err);
-                            fileList.forEach(function(fileName, index, array) {
-                                // Decipher every file but the token
-                                if(path.basename(fileName) != global.tokenFileName) {
-                                    console.log('Deciphering', fileName);
-                                    decryptFile(fileName, iv, key, global.defaultCallback);
-                                }
-                            });
-                        });
+            fs.unlink(path.join(repository, global.lockFileName), function(err){
+                // Decipher every file but the token
+                nodedir.files(repository, function(err, fileList) {
+                    if(err) cb(err);
+                    fileList.forEach(function(fileName, index, array) {
+                        // Decipher every file but the token
+                        if(path.basename(fileName) != global.tokenFileName) {
+                            console.log('Deciphering', fileName);
+                            decryptFile(fileName, iv, key, cb);
+                        }
                     });
-                }
+                });
             });
         });
     });

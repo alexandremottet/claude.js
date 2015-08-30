@@ -7,7 +7,7 @@ var tokenFileName = require('./global').tokenFileName;
 
 // Generates a pair of tokens in volumePath/tokenFileName and localPath/tokenFileName
 function generate(volumePath, localPath, callback) {
-    console.log('Generating tokens...');
+    console.log('Generating token...');
     crypto.randomBytes(64, function(exc, buf) {
         if(exc) {
             callback('Cannot generate the tokens.');
@@ -19,15 +19,8 @@ function generate(volumePath, localPath, callback) {
                 callback('Cannot write the token on the volume.');
                 return;
             }
-            
-            console.log('Writing token in', path.join(localPath, tokenFileName));
-            fs.writeFile(path.join(localPath, tokenFileName), buf, function(exc) {
-                if(exc) callback('Cannot write the token on the local repo.');
-                else {
-                    require('./global').repoTable.push({localPath: localPath, remotePath: volumePath, token: buf});
-                    callback(null);
-                }
-            });
+            require('./global').repoTable.push({localPath: localPath, remotePath: volumePath, token: buf});
+            callback(null);
         });
     });
 }

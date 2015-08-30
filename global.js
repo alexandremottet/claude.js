@@ -52,6 +52,11 @@ function rmdirRecursive(dirname,cb) {
     });
 }
 
+function isStringValidRepositoryID(s) {
+    var a = parseInt(s);
+    return (!isNaN(a) && a < repoTable.length);
+}
+
 
 var repoTable = []
 
@@ -68,7 +73,8 @@ var global = {
     readConfigFile: readConfigFile,
     
     defaultCallback: defaultCallback,
-    rmdirRecursive: rmdirRecursive
+    rmdirRecursive: rmdirRecursive,
+    isStringValidRepositoryID: isStringValidRepositoryID
 };
 
 module.exports = global
