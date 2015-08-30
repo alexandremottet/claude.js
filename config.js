@@ -26,7 +26,7 @@ function checkVolume(volumePath, cb) {
 function register(volumePath, localPath, cb) {
     nVolumePath = path.resolve(volumePath);
     nLocalPath = path.resolve(localPath);
-    // TODO: need to check if volumePath points to an empty directory
+
     // TODO: need to check if localPath points to a nonexisting directory
     console.log('Starting creation...');
     Git.Repository.init(nVolumePath, 1).then( function(repo) {

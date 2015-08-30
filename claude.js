@@ -1,75 +1,12 @@
 var fs = require('fs');
-var os = require('os');
-var child_processes = require('child_process');
 var readline = require('readline');
 var path = require('path');
 var config = require('./config');
 var lock = require('./lock');
 var Git = require('nodegit');
 
-var tokenFileName = require('./global').tokenFileName;
-var windows = (os.platform().match("^win") != null);
-var mac = 'darwin';
-
-function sync(device)
-{
-    console.log("coucou " + device); 
-    tokenFound = true;
-}
-
-function isDeviceClaudeEnabled(device, callback) {
-    fs.readdir(device, function(err, files) {
-        if(err) callback(err, null);
-        else {
-            files.forEach(function(file_name, index, array) {
-                if(file_name == tokenFileName && fs.statSync(path.join(device, tokenFileName)).isFile() )
-                {
-                    callback(null, device);
-                }
-            });
-            callback(device + ' is not Claude-enabled', null);
-        }
-    });
-}
-
-function parseDevices(checkDevice, callback)
-{
-    if(windows) {
-        child_processes.exec('wmic logicaldisk get name', function(err, stdout, stderr)
-        {
-            array = stdout.split("\r\r\n");
-            volumes = array.slice(1, array.length-2);
-            volumes.forEach(function(o,i,a) {
-                checkDevice(o.trim(), callback);
-            });
-        });
-    } else if (os.platform() === mac) {
-        console.log('mac process');
-        var volumes = fs.readdirSync('/Volumes/');
-        volumes.forEach(function(o,i,a) {
-            console.log('check device', o);
-            checkDevice('/Volumes/' + o, callback);
-        });
-    } else {
-        console.log('linux process');
-    }
-}
-
-var tokenFound = false;
-function detectDevices(checkDevice) {
-    parseDevices(checkDevice, function parseDeviceCallback() {
-        if(!tokenFound) {
-            console.log('token not found');
-            setTimeout(function() {
-                detectDevices(checkDevice);
-            }, 500);   
-        }
-    });
-}
-
-//detectDevices(function (device){
-//    parseToken(device, sync);
-//});
+require('./devices').detectDevices(require('./devices').registerClaudeDevice);
+require('./global').readConfigFile();
 
 function cmdList(arg) {
     if(arg[0] == 'devices')
@@ -146,8 +83,6 @@ function cmdQuit(arg) {
     fs.writeFileSync('.claude', JSON.stringify(require('./global').repoTable));
     process.exit(0);
 }
-
-require('./global').readConfigFile();
 
 var rl = readline.createInterface({
     input: process.stdin,
