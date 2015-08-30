@@ -3,7 +3,6 @@ var readline = require('readline');
 var path = require('path');
 var config = require('./config');
 var lock = require('./lock');
-var Git = require('nodegit');
 
 require('./devices').detectDevices(require('./devices').registerClaudeDevice);
 require('./global').readConfigFile();

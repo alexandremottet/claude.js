@@ -2,6 +2,7 @@ var crypto = require('crypto')
 var fs = require('fs');
 var path = require('path');
 var nodedir = require('node-dir');
+var Git = require('nodegit');
 
 var encryptFile = require('./crypt').encryptFile;
 var decryptFile = require('./crypt').decryptFile;
