@@ -40,8 +40,9 @@ function cmdLock(args) {
         return;
     }
     var repoEntry = require('./global').repoTable[args[0]];
+    var key = args.slice(1).join(' ');
        
-    lock.lockRepository(repoEntry.remotePath, args[1], function(err) {
+    lock.lockRepository(repoEntry.remotePath, key, function(err) {
         if(err) console.log(err);
         else {
             require('./global').rmdirRecursive(repoEntry.localPath, function(err) {
@@ -61,12 +62,14 @@ function cmdUnlock(args) {
     }
     
     var repoEntry = require('./global').repoTable[args[0]];
+    var key = args.slice(1).join(' ');
+    
     if(repoEntry.localPath == '') {
         rl.question('Where should I copy the repository?', function(ans) {
             repoEntry.localPath = ans;
-            lock.unlockAndClone(repoEntry.remotePath, repoEntry.localPath, args[1]);
+            lock.unlockAndClone(repoEntry.remotePath, repoEntry.localPath, key);
         });
-    } else lock.unlockAndClone(repoEntry.remotePath, repoEntry.localPath, args[1]);
+    } else lock.unlockAndClone(repoEntry.remotePath, repoEntry.localPath, key);
 }
 
 function cmdQuit(arg) {
