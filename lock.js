@@ -71,18 +71,23 @@ function unlockRepository(repository, passwd, cb) {
                 cb(err);
                 return;
             }
-            
-            fs.unlink(path.join(repository, global.lockFileName), function(err){
-                // Decipher every file but the token
-                nodedir.files(repository, function(err, fileList) {
-                    if(err) cb(err);
-                    fileList.forEach(function(fileName, index, array) {
-                        // Decipher every file but the token
-                        if(path.basename(fileName) != global.tokenFileName) {
-                            console.log('Deciphering', fileName);
-                            decryptFile(fileName, iv, key, cb);
-                        }
-                    });
+            // Decipher every file but the token
+            nodedir.files(repository, function(err, fileList) {
+                var nbRemainingFiles = fileList.length-2;
+
+                if(err) cb(err);
+                fileList.forEach(function(fileName, index, array) {
+                    // Decipher every file but the token
+                    if(path.basename(fileName) != global.tokenFileName && path.basename(fileName) != global.lockFileName) {
+                        console.log('Deciphering', fileName);
+                        decryptFile(fileName, iv, key, function(err) {
+                            if(err)
+                                cb(err);
+                            else if(--nbRemainingFiles == 0)
+                                 fs.unlink(path.join(repository, global.lockFileName), cb);
+
+                        });
+                    }
                 });
             });
         });
