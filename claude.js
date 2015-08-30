@@ -94,7 +94,22 @@ function cmdAdd(arg) {
 }
 
 function cmdLock(args) {
-    lock.lockRepository(args[0], args[1]);
+    var repoEntry = require('./global').repoTable[args[0]];
+       
+    lock.lockRepository(repoEntry.remotePath, args[1], function(err) {
+        if(err) console.log(err);
+        else {
+            require('./global').rmdirRecursive(repoEntry.localPath, function(err) {
+                if(err) {
+                    console.log('Cannot remove',repoEntry.localPath);
+                    console.log(err);
+                } else {
+                    repoEntry.localPath = '';
+                    repoEntry.remotePath = '';
+                }
+            });
+        }
+    });
 }
 
 function cmdUnlock(args) {
@@ -120,9 +135,10 @@ commands = {
     'list': [1, cmdList, 'list (devices|local)'],
     'add': [0, cmdAdd, 'add'],
     '': [0, function(a){}, ''],
-    'lock': [2, cmdLock, 'lock <remote repository> <password>'],
-    'unlock': [2, cmdUnlock, 'unlock <remote repository> <password>'],
-    'quit': [0, cmdQuit, '']
+    'lock': [2, cmdLock, 'lock <local repository> <password>'],
+    'unlock': [2, cmdUnlock, 'unlock <local repository> <password>'],
+    'quit': [0, cmdQuit, ''],
+    'rmdir': [1, function(a){require('./global').rmdirRecursive(a[0], require('./global').defaultCallback);}, '']
 };
 
 rl.on('line', function(cmd) {
